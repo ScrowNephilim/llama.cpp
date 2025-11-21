@@ -62,6 +62,46 @@ mkdir -p %{buildroot}/etc/sysconfig
 LLAMA_ARGS="-m /opt/llama2/ggml-model-f32.bin"
 EOF
 
+mkdir -p %{buildroot}/Library/LaunchAgents
+%{__cat} <<EOF  > %{buildroot}/Library/LaunchAgents/com.user.llama.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.user.llama</string>
+
+    <!-- absolute path to binary -->
+    <key>ProgramArguments</key>
+    <array>
+      <string>/Users/scrowc/dev/llama/llamaccp</string>
+    </array>
+
+    <!-- set working directory if binary expects relative files -->
+    <key>WorkingDirectory</key>
+    <string>/Users/scrowc/dev/llama</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>RAPTOR_MINI_ENABLED</key>
+      <string>1</string>
+      <key>RAPTOR_MINI</key>
+      <string>preview</string>
+      <!-- add other vars your server needs, e.g. RAPTOR_MODE=all_clients -->
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/llamaccp.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/llamaccp.err</string>
+  </dict>
+</plist>
+EOF
+
 %clean
 rm -rf %{buildroot}
 rm -rf %{_builddir}/*
@@ -72,6 +112,7 @@ rm -rf %{_builddir}/*
 %{_bindir}/llama-cuda-simple
 /usr/lib/systemd/system/llamacuda.service
 %config /etc/sysconfig/llama
+/Library/LaunchAgents/com.user.llama.plist
 
 %pre
 
